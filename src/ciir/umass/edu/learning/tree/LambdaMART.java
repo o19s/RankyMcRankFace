@@ -311,23 +311,50 @@ public class LambdaMART extends Ranker {
         @Override
 	public void loadFromString(String fullText)
 	{
+		int CARRIAGE_RETURN = 13;
+		int LINE_FEED = 10;
+
 		try {
 			String content = "";
-			//String model = "";
-			StringBuffer model = new StringBuffer ();
-			BufferedReader in = new BufferedReader(new StringReader(fullText));
-			while((content = in.readLine()) != null)
-			{
-				content = content.trim();
-				if(content.length() == 0)
-					continue;
-				if(content.indexOf("##")==0)
-					continue;
-				//actual model component
-				//model += content;
-				model.append (content);
+			StringBuilder model = new StringBuilder();
+
+			char [] fullTextChar = fullText.toCharArray();
+
+			int lineCursor = 0;
+			for (int i = 0; i < fullTextChar.length; i++) {
+				int charNum = fullTextChar[i];
+				if (charNum == CARRIAGE_RETURN || charNum == LINE_FEED) {
+
+					// NEWLINE, read lineCursor -> i
+					if (fullTextChar[lineCursor] != '#') {
+						for (int j = lineCursor; j < i; j++) {
+							model.append(fullTextChar[j]);
+						}
+					}
+
+					// readahead this new line up to the next space
+					while (charNum < 32 & i < fullTextChar.length) {
+						charNum = fullTextChar[i];
+						lineCursor = i;
+						i++;
+					}
+				}
 			}
-			in.close();
+//
+//			//String model = "";
+//			BufferedReader in = new BufferedReader(new StringReader(fullText));
+//			while((content = in.readLine()) != null)
+//			{
+//				content = content.trim();
+//				if(content.length() == 0)
+//					continue;
+//				if(content.indexOf("##")==0)
+//					continue;
+//				//actual model component
+//				//model += content;
+//				model.append (content);
+//			}
+//			in.close();
 			//load the ensemble
 			ensemble = new Ensemble(model.toString());
 			features = ensemble.getFeatures();
