@@ -4,7 +4,7 @@
   
   <groupId>edu.umass.ciir</groupId>
   <artifactId>RankLib</artifactId>
-  <version>2.9-SNAPSHOT</version>
+  <version>2.10-DOUG</version>
 
   <packaging>jar</packaging>
   <name>RankLib</name>
