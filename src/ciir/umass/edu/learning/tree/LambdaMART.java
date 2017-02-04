@@ -320,26 +320,39 @@ public class LambdaMART extends Ranker {
 
 			char [] fullTextChar = fullText.toCharArray();
 
-			int lineCursor = 0;
+			int beginOfLineCursor = 0;
 			for (int i = 0; i < fullTextChar.length; i++) {
 				int charNum = fullTextChar[i];
 				if (charNum == CARRIAGE_RETURN || charNum == LINE_FEED) {
 
-					// NEWLINE, read lineCursor -> i
-					if (fullTextChar[lineCursor] != '#') {
-						for (int j = lineCursor; j < i; j++) {
+					// NEWLINE, read beginOfLineCursor -> i
+					if (fullTextChar[beginOfLineCursor] != '#') {
+						int eolCursor = i;
+						while (eolCursor > beginOfLineCursor && fullTextChar[eolCursor] <= 32) {
+							eolCursor--;
+						}
+
+						for (int j = beginOfLineCursor; j <= eolCursor; j++) {
 							model.append(fullTextChar[j]);
 						}
 					}
 
 					// readahead this new line up to the next space
-					while (charNum < 32 & i < fullTextChar.length) {
+					while (charNum <= 32 & i < fullTextChar.length) {
 						charNum = fullTextChar[i];
-						lineCursor = i;
+						beginOfLineCursor = i;
 						i++;
 					}
 				}
 			}
+
+			// read beginOfLineCursor -> EOF
+			if (fullTextChar[beginOfLineCursor] != '#') {
+				for (int j = beginOfLineCursor; j < fullTextChar.length; j++) {
+					model.append(fullTextChar[j]);
+				}
+			}
+
 
 			//load the ensemble
 			ensemble = new Ensemble(model.toString());
