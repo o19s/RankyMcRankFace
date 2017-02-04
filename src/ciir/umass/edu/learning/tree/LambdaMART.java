@@ -340,6 +340,7 @@ public class LambdaMART extends Ranker {
 					}
 				}
 			}
+
 			//load the ensemble
 			ensemble = new Ensemble(model.toString());
 			features = ensemble.getFeatures();
