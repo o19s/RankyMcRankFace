@@ -311,23 +311,49 @@ public class LambdaMART extends Ranker {
         @Override
 	public void loadFromString(String fullText)
 	{
+		int CARRIAGE_RETURN = 13;
+		int LINE_FEED = 10;
+
 		try {
 			String content = "";
-			//String model = "";
-			StringBuffer model = new StringBuffer ();
-			BufferedReader in = new BufferedReader(new StringReader(fullText));
-			while((content = in.readLine()) != null)
-			{
-				content = content.trim();
-				if(content.length() == 0)
-					continue;
-				if(content.indexOf("##")==0)
-					continue;
-				//actual model component
-				//model += content;
-				model.append (content);
+			StringBuilder model = new StringBuilder();
+
+			char [] fullTextChar = fullText.toCharArray();
+
+			int beginOfLineCursor = 0;
+			for (int i = 0; i < fullTextChar.length; i++) {
+				int charNum = fullTextChar[i];
+				if (charNum == CARRIAGE_RETURN || charNum == LINE_FEED) {
+
+					// NEWLINE, read beginOfLineCursor -> i
+					if (fullTextChar[beginOfLineCursor] != '#') {
+						int eolCursor = i;
+						while (eolCursor > beginOfLineCursor && fullTextChar[eolCursor] <= 32) {
+							eolCursor--;
+						}
+
+						for (int j = beginOfLineCursor; j <= eolCursor; j++) {
+							model.append(fullTextChar[j]);
+						}
+					}
+
+					// readahead this new line up to the next space
+					while (charNum <= 32 & i < fullTextChar.length) {
+						charNum = fullTextChar[i];
+						beginOfLineCursor = i;
+						i++;
+					}
+				}
 			}
-			in.close();
+
+			// read beginOfLineCursor -> EOF
+			if (fullTextChar[beginOfLineCursor] != '#') {
+				for (int j = beginOfLineCursor; j < fullTextChar.length; j++) {
+					model.append(fullTextChar[j]);
+				}
+			}
+
+
 			//load the ensemble
 			ensemble = new Ensemble(model.toString());
 			features = ensemble.getFeatures();

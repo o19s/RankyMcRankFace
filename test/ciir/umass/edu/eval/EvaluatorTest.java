@@ -4,6 +4,7 @@ import ciir.umass.edu.learning.CoorAscent;
 import ciir.umass.edu.learning.DataPoint;
 import ciir.umass.edu.learning.Ranker;
 import ciir.umass.edu.learning.RankerFactory;
+import ciir.umass.edu.learning.tree.LambdaMART;
 import ciir.umass.edu.utilities.FileUtils;
 import ciir.umass.edu.utilities.TmpFile;
 import org.junit.Ignore;
@@ -193,6 +194,53 @@ public class EvaluatorTest {
       testRanker(dataFile, modelFile, rankFile, 6, "map");
     }
   }
+
+  @Test
+  public void testLambdaMARTParseModel() throws IOException {
+
+    String simpleModel = "## LambdaMART\n" +
+            "## name:foo\n" +
+            "## No. of trees = 1\n" +
+            "## No. of leaves = 10\n" +
+            "## No. of threshold candidates = 256\n" +
+            "## Learning rate = 0.1\n" +
+            "## Stop early = 100\n" +
+            "\n" +
+            "<ensemble>\n" +
+            " <tree id=\"1\" weight=\"0.1\">\n" +
+            "  <split>\n" +
+            "   <feature> 1 </feature>\n" +
+            "   <threshold> 0.45867884 </threshold>\n" +
+            "   <split pos=\"left\">\n" +
+            "    <feature> 1 </feature>\n" +
+            "    <threshold> 0.0 </threshold>\n" +
+            "    <split pos=\"left\">\n" +
+            "     <output> -2.0 </output>\n" +
+            "    </split>\n" +
+            "    <split pos=\"right\">\n" +
+            "     <output> -1.3413081169128418 </output>\n" +
+            "    </split>\n" +
+            "   </split>\n" +
+            "   <split pos=\"right\">\n" +
+            "    <feature> 1 </feature>\n" +
+            "    <threshold> 0.6115718 </threshold>\n" +
+            "    <split pos=\"left\">\n" +
+            "     <output> 0.3089442849159241 </output>\n" +
+            "    </split>\n" +
+            "    <split pos=\"right\">\n" +
+            "     <output> 2.0 </output>\n" +
+            "    </split>\n" +
+            "   </split>\n" +
+            "  </split>\n" +
+            " </tree>\n" +
+            "</ensemble>";
+
+      RankerFactory factory = new RankerFactory();
+      Ranker ranker = factory.loadRankerFromString(simpleModel);
+      LambdaMART lambdaMART = (LambdaMART)ranker;
+      assert(lambdaMART != null);
+  }
+
   @Test
   public void testListNet() throws IOException {
     try (TmpFile dataFile = new TmpFile();
