@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   
   <groupId>edu.umass.ciir</groupId>
-  <artifactId>RankLib</artifactId>
-  <version>2.10-DOUG</version>
+  <artifactId>RankLibPlus</artifactId>
+  <version>0.1.0</version>
 
   <packaging>jar</packaging>
   <name>RankLib</name>
