@@ -1,4 +1,6 @@
-This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork or Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank).
+This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork of Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank).
+
+It is under the `com.o19s:RankyMcRankFace` Maven namespace.
 
 ## Ranklib
 
