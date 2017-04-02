@@ -1,3 +1,5 @@
+[ ![Download](https://api.bintray.com/packages/epugh/RankyMcRankFace/RankyMcRankFace/images/download.svg) ](https://bintray.com/epugh/RankyMcRankFace/RankyMcRankFace/_latestVersion)
+
 This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork of Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank).
 
 It is under the `com.o19s:RankyMcRankFace` Maven namespace.
