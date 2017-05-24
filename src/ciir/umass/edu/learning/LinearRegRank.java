@@ -49,35 +49,40 @@ public class LinearRegRank extends Ranker {
 		/*int nSample = 0;
 		for(int i=0;i<samples.size();i++)
 			nSample += samples.get(i).size();*/
-		int nVar = DataPoint.getFeatureCount();
+		int nFeatures = DataPoint.getFeatureCount();
 		
-		double[][] xTx = new double[nVar][];
-		for(int i=0;i<nVar;i++)
+		double[][] xTx = new double[nFeatures][];  // num features x num features matrix
+		for(int i=0;i<nFeatures;i++)
 		{
-			xTx[i] = new double[nVar];
+			xTx[i] = new double[nFeatures];
 			Arrays.fill(xTx[i], 0.0);
 		}
-		double[] xTy = new double[nVar];
+		double[] xTy = new double[nFeatures];
 		Arrays.fill(xTy, 0.0);
 		
-		for(int s=0;s<samples.size();s++)
+		for(int s=0;s<samples.size();s++) // for each sample
 		{
 			RankList rl = samples.get(s);
 			for(int i=0;i<rl.size();i++)
 			{
-				xTy[nVar-1] += rl.get(i).getLabel();
-				for(int j=0;j<nVar-1;j++)
+				float currLabel = rl.get(i).getLabel();
+
+				// for every example, regardless of grouping
+				xTy[nFeatures-1] += currLabel; // bottom of the matrix, increment by labe	l
+				for(int j=0;j<nFeatures-1;j++)
 				{
-					xTy[j] += rl.get(i).getFeatureValue(j+1) * rl.get(i).getLabel();
-					for(int k=0;k<nVar;k++)
+					xTy[j] += rl.get(i).getFeatureValue(j+1) * currLabel;
+					for(int k=0;k<nFeatures;k++)
 					{
-						double t = (k < nVar-1) ? rl.get(i).getFeatureValue(k+1) : 1f;
+						double t = (k < nFeatures-1) ? rl.get(i).getFeatureValue(k+1) : 1f;
 						xTx[j][k] += rl.get(i).getFeatureValue(j+1) * t;
 					}
 				}
-				for(int k=0;k<nVar-1;k++)
-					xTx[nVar-1][k] += rl.get(i).getFeatureValue(k+1);
-				xTx[nVar-1][nVar-1] += 1f;
+				for(int k=0;k<nFeatures-1;k++)
+					xTx[nFeatures-1][k] += rl.get(i).getFeatureValue(k+1);
+
+				// why are we incrementing the bottom right
+				xTx[nFeatures-1][nFeatures-1] += 1f;
 			}
 		}
 		if(lambda != 0.0)//regularized

@@ -196,6 +196,14 @@ public class EvaluatorTest {
   }
 
   @Test
+  public void testRandomForrestParseModel() throws IOException {
+
+
+    RankerFactory factory = new RankerFactory();
+
+  }
+
+  @Test
   public void testLambdaMARTParseModel() throws IOException {
 
     String simpleModel = "## LambdaMART\n" +
