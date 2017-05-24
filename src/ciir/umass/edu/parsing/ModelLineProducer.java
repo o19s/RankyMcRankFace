@@ -10,14 +10,35 @@ public class ModelLineProducer {
     private StringBuilder model = new StringBuilder();
 
     public interface LineConsumer {
-        void nextLine(StringBuilder model);
+        void nextLine(StringBuilder model, boolean maybeEndEns);
     }
 
     public StringBuilder getModel() {
         return model;
     }
 
-    ;
+    private boolean readUntil(char[] fullTextChar, int beginOfLineCursor, int endOfLineCursor, StringBuilder model) {
+
+        // read line in, scan for probable Ensemble
+
+        boolean ens = true;
+
+        if (fullTextChar[beginOfLineCursor] != '#') {
+            for (int j = beginOfLineCursor; j <= endOfLineCursor; j++) {
+                model.append(fullTextChar[j]);
+            }
+        }
+
+        // dumb quick hack to see if the reader should check for ensemble tag
+        if (endOfLineCursor > 3) {
+            ens = (   fullTextChar[endOfLineCursor - 9] == '/' &&
+                      fullTextChar[endOfLineCursor - 2] == 'l' &&
+                      fullTextChar[endOfLineCursor - 1] == 'e' &&
+                      fullTextChar[endOfLineCursor]     == '>');
+        }
+        return ens;
+    }
+
 
     public void parse(String fullText, LineConsumer modelConsumer) {
 
@@ -43,10 +64,9 @@ public class ModelLineProducer {
                             eolCursor--;
                         }
 
-                        for (int j = beginOfLineCursor; j <= eolCursor; j++) {
-                            model.append(fullTextChar[j]);
-                        }
-                        modelConsumer.nextLine(model);
+                        boolean ens = readUntil(fullTextChar, beginOfLineCursor, eolCursor, model);
+
+                        modelConsumer.nextLine(model, ens);
                     }
 
                     // readahead this new line up to the next space
@@ -58,13 +78,11 @@ public class ModelLineProducer {
                 }
             }
 
-            // read beginOfLineCursor -> EOF
-            if (fullTextChar[beginOfLineCursor] != '#') {
-                for (int j = beginOfLineCursor; j < fullTextChar.length; j++) {
-                    model.append(fullTextChar[j]);
-                }
-            }
-            modelConsumer.nextLine(model);
+
+            boolean ens = readUntil(fullTextChar, beginOfLineCursor, fullTextChar.length - 1, model);
+
+
+            modelConsumer.nextLine(model, ens);
 
 
         }

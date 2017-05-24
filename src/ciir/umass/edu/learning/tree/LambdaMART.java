@@ -317,7 +317,7 @@ public class LambdaMART extends Ranker {
 
 		try {
 
-			lineByLine.parse(fullText, (StringBuilder model) -> {return;});
+			lineByLine.parse(fullText, (StringBuilder model, boolean endEns) -> {return;});
 			//load the ensemble
 			ensemble = new Ensemble(lineByLine.getModel().toString());
 			features = ensemble.getFeatures();

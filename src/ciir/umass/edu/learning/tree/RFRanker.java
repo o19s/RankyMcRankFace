@@ -179,12 +179,13 @@ public class RFRanker extends Ranker {
 
 			ModelLineProducer lineByLine = new ModelLineProducer();
 
-			lineByLine.parse(fullText, (StringBuilder model) -> {
-				if (model.toString().endsWith("</ensemble>")) {
-					System.out.println("new ensemble");
-
-					ens.add(new Ensemble(model.toString()));
-					model.setLength(0);
+			lineByLine.parse(fullText, (StringBuilder model, boolean maybeEndEns) -> {
+				if (maybeEndEns) {
+					String modelAsStr = model.toString();
+					if (modelAsStr.endsWith("</ensemble>")) {
+						ens.add(new Ensemble(modelAsStr));
+						model.setLength(0);
+					}
 				}
 			});
 
