@@ -13,6 +13,7 @@ import ciir.umass.edu.learning.DataPoint;
 import ciir.umass.edu.learning.RankList;
 import ciir.umass.edu.learning.Ranker;
 import ciir.umass.edu.metric.MetricScorer;
+import ciir.umass.edu.parsing.ModelLineProducer;
 import ciir.umass.edu.utilities.MergeSorter;
 import ciir.umass.edu.utilities.MyThreadPool;
 import ciir.umass.edu.utilities.RankLibError;
@@ -311,51 +312,14 @@ public class LambdaMART extends Ranker {
         @Override
 	public void loadFromString(String fullText)
 	{
-		int CARRIAGE_RETURN = 13;
-		int LINE_FEED = 10;
+
+		ModelLineProducer lineByLine = new ModelLineProducer();
 
 		try {
-			String content = "";
-			StringBuilder model = new StringBuilder();
 
-			char [] fullTextChar = fullText.toCharArray();
-
-			int beginOfLineCursor = 0;
-			for (int i = 0; i < fullTextChar.length; i++) {
-				int charNum = fullTextChar[i];
-				if (charNum == CARRIAGE_RETURN || charNum == LINE_FEED) {
-
-					// NEWLINE, read beginOfLineCursor -> i
-					if (fullTextChar[beginOfLineCursor] != '#') {
-						int eolCursor = i;
-						while (eolCursor > beginOfLineCursor && fullTextChar[eolCursor] <= 32) {
-							eolCursor--;
-						}
-
-						for (int j = beginOfLineCursor; j <= eolCursor; j++) {
-							model.append(fullTextChar[j]);
-						}
-					}
-
-					// readahead this new line up to the next space
-					while (charNum <= 32 & i < fullTextChar.length) {
-						charNum = fullTextChar[i];
-						beginOfLineCursor = i;
-						i++;
-					}
-				}
-			}
-
-			// read beginOfLineCursor -> EOF
-			if (fullTextChar[beginOfLineCursor] != '#') {
-				for (int j = beginOfLineCursor; j < fullTextChar.length; j++) {
-					model.append(fullTextChar[j]);
-				}
-			}
-
-
+			lineByLine.parse(fullText, (StringBuilder model, boolean endEns) -> {return;});
 			//load the ensemble
-			ensemble = new Ensemble(model.toString());
+			ensemble = new Ensemble(lineByLine.getModel().toString());
 			features = ensemble.getFeatures();
 		}
 		catch(Exception ex)

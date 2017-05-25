@@ -5,6 +5,7 @@ import ciir.umass.edu.learning.DataPoint;
 import ciir.umass.edu.learning.Ranker;
 import ciir.umass.edu.learning.RankerFactory;
 import ciir.umass.edu.learning.tree.LambdaMART;
+import ciir.umass.edu.learning.tree.RFRanker;
 import ciir.umass.edu.utilities.FileUtils;
 import ciir.umass.edu.utilities.TmpFile;
 import org.junit.Ignore;
@@ -193,6 +194,100 @@ public class EvaluatorTest {
       writeRandomData(dataFile);
       testRanker(dataFile, modelFile, rankFile, 6, "map");
     }
+  }
+
+  @Test
+  public void testRandomForrestParseModel() throws IOException {
+
+
+    RankerFactory factory = new RankerFactory();
+
+  }
+
+  @Test
+  public void testEnsemble() throws IOException {
+
+    String ensembleHeader =  "## Random Forests \n" +
+            "## name:foo\n" +
+            "## No. of trees = 1\n" +
+            "## No. of leaves = 10\n" +
+            "## No. of threshold candidates = 256\n" +
+            "## Learning rate = 0.1\n" +
+            "## Stop early = 100\n" +
+            "\n";
+
+    String ensemble = ensembleHeader +
+            "<ensemble>\n" +
+            " <tree id=\"1\" weight=\"0.1\">\n" +
+            "  <split>\n" +
+            "   <feature> 1 </feature>\n" +
+            "   <threshold> 0.45867884 </threshold>\n" +
+            "   <split pos=\"left\">\n" +
+            "    <feature> 1 </feature>\n" +
+            "    <threshold> 0.0 </threshold>\n" +
+            "    <split pos=\"left\">\n" +
+            "     <output> -2.0 </output>\n" +
+            "    </split>\n" +
+            "    <split pos=\"right\">\n" +
+            "     <output> -1.3413081169128418 </output>\n" +
+            "    </split>\n" +
+            "   </split>\n" +
+            "   <split pos=\"right\">\n" +
+            "    <feature> 1 </feature>\n" +
+            "    <threshold> 0.6115718 </threshold>\n" +
+            "    <split pos=\"left\">\n" +
+            "     <output> 0.3089442849159241 </output>\n" +
+            "    </split>\n" +
+            "    <split pos=\"right\">\n" +
+            "     <output> 2.0 </output>\n" +
+            "    </split>\n" +
+            "   </split>\n" +
+            "  </split>\n" +
+            " </tree></ensemble>";
+
+
+    RankerFactory factory = new RankerFactory();
+    Ranker ranker = factory.loadRankerFromString(ensemble);
+    RFRanker rfRanker = (RFRanker) ranker;
+    assert(rfRanker != null);
+    assert(rfRanker.getEnsembles().length == 1);
+
+
+    String ensemble2 = ensembleHeader + "\n" +
+            "<ensemble>" +
+            " <tree id=\"1\" weight=\"0.1\">" +
+            "  <split>" +
+            "   <feature> 1 </feature>" +
+            "   <threshold> 0.45867884 </threshold>" +
+            "   <split pos=\"left\">" +
+            "    <feature> 1 </feature>" +
+            "    <threshold> 0.0 </threshold>" +
+            "    <split pos=\"left\">" +
+            "     <output> -2.0 </output>" +
+            "    </split>" +
+            "    <split pos=\"right\">" +
+            "     <output> -1.3413081169128418 </output>" +
+            "    </split>" +
+            "   </split>" +
+            "   <split pos=\"right\">" +
+            "    <feature> 1 </feature>" +
+            "    <threshold> 0.6115718 </threshold>" +
+            "    <split pos=\"left\">" +
+            "     <output> 0.3089442849159241 </output>" +
+            "    </split>" +
+            "    <split pos=\"right\">" +
+            "     <output> 2.0 </output>" +
+            "    </split>" +
+            "   </split>" +
+            "  </split>" +
+            " </tree></ensemble>";
+
+//    ranker = factory.loadRankerFromString(ensemble2.replace(">"));
+//    rfRanker = (RFRanker) ranker;
+//    assert(rfRanker != null);
+//    assert(rfRanker.getEnsembles().length == 2);
+
+
   }
 
   @Test

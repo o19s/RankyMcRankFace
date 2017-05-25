@@ -11,6 +11,7 @@ package ciir.umass.edu.learning.tree;
 
 import ciir.umass.edu.learning.*;
 import ciir.umass.edu.metric.MetricScorer;
+import ciir.umass.edu.parsing.ModelLineProducer;
 import ciir.umass.edu.utilities.RankLibError;
 import ciir.umass.edu.utilities.SimpleMath;
 
@@ -134,31 +135,33 @@ public class RFRanker extends Ranker {
 		output += toString();
 		return output;
 	}
+
+
   @Override
 	public void loadFromString(String fullText)
 	{
 		try {
 			String content = "";
-			String model = "";
-			BufferedReader in = new BufferedReader(new StringReader(fullText));
 			List<Ensemble> ens = new ArrayList<Ensemble>();
-			while((content = in.readLine()) != null)
-			{
-				content = content.trim();
-				if(content.length() == 0)
-					continue;
-				if(content.indexOf("##")==0)
-					continue;
-				//actual model component
-				model += content;
-				if(content.indexOf("</ensemble>") != -1)
-				{
-					//load the ensemble
-					ens.add(new Ensemble(model));
-					model = "";
-				}				
-			}
-			in.close();
+
+
+			System.out.println("Loading Model Line by Line");
+
+			ModelLineProducer lineByLine = new ModelLineProducer();
+
+			lineByLine.parse(fullText, (StringBuilder model, boolean maybeEndEns) -> {
+				if (maybeEndEns) {
+					String modelAsStr = model.toString();
+					if (modelAsStr.endsWith("</ensemble>")) {
+						ens.add(new Ensemble(modelAsStr));
+						model.setLength(0);
+					}
+				}
+			});
+
+
+			System.out.println("Line by Line Done");
+
 			HashSet<Integer> uniqueFeatures = new HashSet<Integer>();
 			ensembles = new Ensemble[ens.size()];
 			for(int i=0;i<ens.size();i++)
@@ -174,6 +177,9 @@ public class RFRanker extends Ranker {
 			features = new int[uniqueFeatures.size()];
 			for(Integer f : uniqueFeatures)
 				features[fi++] = f.intValue();
+
+			System.out.println("Other Loading Done");
+
 		}
 		catch(Exception ex)
 		{
