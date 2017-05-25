@@ -144,9 +144,6 @@ public class RFRanker extends Ranker {
 			String content = "";
 			List<Ensemble> ens = new ArrayList<Ensemble>();
 
-
-			System.out.println("Loading Model Line by Line");
-
 			ModelLineProducer lineByLine = new ModelLineProducer();
 
 			lineByLine.parse(fullText, (StringBuilder model, boolean maybeEndEns) -> {
@@ -159,8 +156,6 @@ public class RFRanker extends Ranker {
 				}
 			});
 
-
-			System.out.println("Line by Line Done");
 
 			HashSet<Integer> uniqueFeatures = new HashSet<Integer>();
 			ensembles = new Ensemble[ens.size()];
