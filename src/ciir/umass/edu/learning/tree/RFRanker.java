@@ -136,36 +136,6 @@ public class RFRanker extends Ranker {
 		return output;
 	}
 
-//	@Override
-//	public void loadFromString(String fullText)
-//	{
-//		try {
-//			String content = "";
-//			//String model = "";
-//			StringBuffer model = new StringBuffer ();
-//			BufferedReader in = new BufferedReader(new StringReader(fullText));
-//			while((content = in.readLine()) != null)
-//			{
-//				content = content.trim();
-//				if(content.length() == 0)
-//					continue;
-//				if(content.indexOf("##")==0)
-//					continue;
-//				//actual model component
-//				//model += content;
-//				model.append (content);
-//			}
-//			in.close();
-//			//load the ensemble
-//			ensemble = new Ensemble(model.toString());
-//			features = ensemble.getFeatures();
-//		}
-//		catch(Exception ex)
-//		{
-//			throw RankLibError.create("Error in LambdaMART::load(): ", ex);
-//		}
-//	}
-
 
   @Override
 	public void loadFromString(String fullText)
