@@ -4,7 +4,9 @@ import ciir.umass.edu.utilities.TmpFile;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
@@ -23,8 +25,14 @@ public class FeatureStrengthTest extends RankyTest {
         _rankFile = new TmpFile();
     }
 
-    void runLambdaMart() {
+    String runLambdaMart(boolean captureStdOut) {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        if (captureStdOut) {
+            System.setOut(new PrintStream(outContent));
+        }
+
         testRanker(_dataFile, _modelFile, _rankFile, 6, "ndcg@4");
+        return outContent.toString();
     }
 
     @Test
@@ -41,7 +49,10 @@ public class FeatureStrengthTest extends RankyTest {
             out.println("0 qid:1 1:0.0 2:1    # P7");
             out.println("0 qid:1 1:0.0 2:1    # P8");
         }
-        runLambdaMart();
+        String stdOut = runLambdaMart(true);
+        String ftrImpacts = stdOut.substring(stdOut.indexOf("FEATURE IMPACTS"));
+        // we expect "Feature 1" to be a higher impact than feature 2, ensure it comes first
+        assert(ftrImpacts.indexOf("Feature 1") < ftrImpacts.indexOf("Feature 2"));
 
     }
 
