@@ -28,7 +28,7 @@ public class Split {
 	//Intermediate variables (ONLY used during learning)
 	//*DO NOT* attempt to access them once the training is done
 	private boolean isRoot = false;
-	private double sumLabel = 0.0;
+	private double sumLabel = 0.0;		// label really means the psueodo-response state for lambdamart
 	private double sqSumLabel = 0.0;
 	private Split left = null;
 	private Split right = null;

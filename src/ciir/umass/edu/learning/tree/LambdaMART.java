@@ -58,6 +58,7 @@ public class LambdaMART extends Ranker {
 	protected FeatureHistogram hist = null;
 	protected double[] pseudoResponses = null;//different for each iteration
 	protected double[] weights = null;//different for each iteration
+	protected double[] impacts = null; // accumulated impact of each feature
 	
 	public LambdaMART()
 	{		
@@ -82,6 +83,7 @@ public class LambdaMART extends Ranker {
 		martSamples = new DataPoint[dpCount];
 		modelScores = new double[dpCount];
 		pseudoResponses = new double[dpCount];
+		impacts = new double[features.length];
 		weights = new double[dpCount];
 		for(int i=0;i<samples.size();i++)
 		{
@@ -167,7 +169,7 @@ public class LambdaMART extends Ranker {
 		
 		//compute the feature histogram (this is used to speed up the procedure of finding the best tree split later on)
 		hist = new FeatureHistogram();
-		hist.construct(martSamples, pseudoResponses, sortedIdx, features, thresholds);
+		hist.construct(martSamples, pseudoResponses, sortedIdx, features, thresholds, impacts);
 		//we no longer need the sorted indexes of samples
 		sortedIdx = null;
 		
@@ -279,6 +281,18 @@ public class LambdaMART extends Ranker {
 			PRINTLN(scorer.name() + " on validation data: " + SimpleMath.round(bestScoreOnValidationData, 4));
 		}
 		PRINTLN("---------------------------------");
+
+		PRINTLN("---------------------------------");
+		PRINTLN("-- FEATURE IMPACTS");
+		int ftrsSorted[] = MergeSorter.sort(this.impacts, false);
+		for (int i = 0; i < ftrsSorted.length; i++) {
+			int ftr = ftrsSorted[i];
+			PRINTLN(" Feature " + features[ftr] + " reduced error " + impacts[ftr]);
+		}
+
+		PRINTLN("");
+
+
 	}
 
 	public double eval(DataPoint dp)
@@ -378,35 +392,68 @@ public class LambdaMART extends Ranker {
 		}
 	}
 
+	// compute psuedo responses based on the current model's error (another name for psuedo response -- 'force' or 'gradient')
+	// "psuedo responses" is the error currently in the model (that we'll attempt to model with features)
+	// How do we get that error?
+	//  Let's say we have two training sampples (aka docs) for a query. Docs k and j, where k is more relevant than j
+	//  (ie label of k is 4, label for j is 0)
+	// Then we want two values to help compute a psuedo response to help build a model for the remaining error
+	//  1. rho -- a weight for how wrong the previous model is. Higher rho is, the more the prev model is wrong
+	//			  at dealing with docs k and j by just predicting scores that don't make sense
+	//  2. deltaNDCG -- what swapping k and j means for the NDCG for this query.
+	//					even though the variable is called 'NDCG' it really uses whatever relevance metric you
+	//					specify (MAP, precision, ERR,... whatever)
+	//
+	// We update psuedoResponse[k] += rho * deltaNDCG (higher gradient/force when
+	//													(a) -- rho high: previous models are more wrong
+	//													(b) -- deltaNDCG high: these two docs being swapped
+	//														   would be really bad for this particular query
+	//     aka psuedoResponse[k] += current error * importance
+
+	// We also update down j (which remember should be left relevant than k) by subtracting out the same val:
+	//         psuedoResponse[j] -= current error * importance
 	protected void computePseudoResponses(int start, int end, int current)
 	{
 		int cutoff = scorer.getK();
 		//compute the lambda for each document (a.k.a "pseudo response")
 		for(int i=start;i<=end;i++)
 		{
-			RankList orig = samples.get(i);			
+			RankList orig = samples.get(i);
+			// sort based on current model's relevance scores
 			int[] idx = MergeSorter.sort(modelScores, current, current+orig.size()-1, false);
 			RankList rl = new RankList(orig, idx, current);
+
+			// a table of possible rearrangements of rl
 			double[][] changes = scorer.swapChange(rl);
 			//NOTE: j, k are indices in the sorted (by modelScore) list, not the original
 			// ==> need to map back with idx[j] and idx[k] 
 			for(int j=0;j<rl.size();j++)
 			{
-				DataPoint p1 = rl.get(j);
-				int mj = idx[j];
+				DataPoint pointJ = rl.get(j);
+				int mj = idx[j]; // index of j in original list
 				for(int k=0;k<rl.size();k++)
 				{
 					if(j > cutoff && k > cutoff)//swaping these pair won't result in any change in target measures since they're below the cut-off point
 						break;
-					DataPoint p2 = rl.get(k);
+					DataPoint pointK = rl.get(k);
 					int mk = idx[k];
-					if(p1.getLabel() > p2.getLabel())
+					if(pointJ.getLabel() > pointK.getLabel())
 					{
+						// j is better than k according to training data... (ie j has a 4, k a 0)
 						double deltaNDCG = Math.abs(changes[j][k]);
 						if(deltaNDCG > 0)
 						{
+							// rho weighs the delta ndcg by the current model score
+							// in this way, this is acting as a gradient
+							// rho mj's score
+							// if the model scores are close (say 100 for j, k for 99)
+							//   rho is smaller
+							// if model scores are far
 							double rho = 1.0 / (1 + Math.exp(modelScores[mj] - modelScores[mk]));
 							double lambda = rho * deltaNDCG;
+
+							// response of DataPoint j in original list
+							// which is better than k in original list
 							pseudoResponses[mj] += lambda;
 							pseudoResponses[mk] -= lambda;
 							double delta = rho * (1.0 - rho) * deltaNDCG;

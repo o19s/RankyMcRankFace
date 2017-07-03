@@ -12,6 +12,7 @@ package ciir.umass.edu.learning.tree;
 import ciir.umass.edu.learning.*;
 import ciir.umass.edu.metric.MetricScorer;
 import ciir.umass.edu.parsing.ModelLineProducer;
+import ciir.umass.edu.utilities.MergeSorter;
 import ciir.umass.edu.utilities.RankLibError;
 import ciir.umass.edu.utilities.SimpleMath;
 
@@ -69,6 +70,7 @@ public class RFRanker extends Ranker {
 		PRINTLN("------------------------------------");
 		PRINTLN(new int[]{9, 9, 11}, new String[]{"bag", scorer.name()+"-B", scorer.name()+"-OOB"});
 		PRINTLN("------------------------------------");
+		double[] impacts = null;
 		//start the bagging process
 		for(int i=0;i<nBag;i++)
 		{
@@ -81,11 +83,21 @@ public class RFRanker extends Ranker {
 			//List<RankList> outOfBag = sp.getRemains();
 			LambdaMART r = (LambdaMART)rf.createRanker(rType, bag, features, scorer);
 			//r.setValidationSet(outOfBag);
+
+
 			
 			boolean tmp = Ranker.verbose;
 			Ranker.verbose = false;//turn of the progress messages from training this ranker
 			r.init();
 			r.learn();
+			// accumulate impacts
+			if (impacts == null) {
+				impacts = r.impacts;
+			} else {
+				for (int ftr = 0; ftr < impacts.length; ftr++) {
+					impacts[ftr]+=r.impacts[ftr];
+				}
+			}
 			Ranker.verbose = tmp;
 			//PRINTLN(new int[]{9, 9, 11}, new String[]{"b["+(i+1)+"]", SimpleMath.round(r.getScoreOnTrainingData(), 4)+"", SimpleMath.round(r.getScoreOnValidationData(), 4)+""});
 			PRINTLN(new int[]{9, 9}, new String[]{"b["+(i+1)+"]", SimpleMath.round(r.getScoreOnTrainingData(), 4)+""});
@@ -102,6 +114,16 @@ public class RFRanker extends Ranker {
 			PRINTLN(scorer.name() + " on validation data: " + SimpleMath.round(bestScoreOnValidationData, 4));
 		}
 		PRINTLN("------------------------------------");
+
+		PRINTLN("-- FEATURE IMPACTS");
+		int ftrsSorted[] = MergeSorter.sort(impacts, false);
+		for (int i = 0; i < ftrsSorted.length; i++) {
+			int ftr = ftrsSorted[i];
+			PRINTLN(" Feature " + features[ftr] + " reduced error " + impacts[ftr]);
+		}
+
+		PRINTLN("");
+
 	}
 	public double eval(DataPoint dp)
 	{

@@ -22,16 +22,19 @@ import ciir.umass.edu.utilities.WorkerThread;
  * @author vdang
  */
 public class FeatureHistogram {
+
 	class Config {
 		int featureIdx = -1;
 		int thresholdIdx = -1;
 		double S = -1;
+		double errReduced = -1;
 	}
 	
 	//Parameter
 	public static float samplingRate = 1;
 	
 	//Variables
+	public float[] accumFeatureImpact = null;
 	public int[] features = null;
 	public float[][] thresholds = null;
 	public double[][] sum = null;
@@ -39,7 +42,9 @@ public class FeatureHistogram {
 	public double sqSumResponse = 0;
 	public int[][] count = null;
 	public int[][] sampleToThresholdMap = null;
-	
+	public double[] impacts;
+
+
 	//whether to re-use its parents @sum and @count instead of cleaning up the parent and re-allocate for the children.
 	//@sum and @count of any intermediate tree node (except for root) can be re-used.  
 	private boolean reuseParent = false;
@@ -49,10 +54,11 @@ public class FeatureHistogram {
 		
 	}
 	
-	public void construct(DataPoint[] samples, double[] labels, int[][] sampleSortedIdx, int[] features, float[][] thresholds)
+	public void construct(DataPoint[] samples, double[] labels, int[][] sampleSortedIdx, int[] features, float[][] thresholds, double[] impacts)
 	{
 		this.features = features;
 		this.thresholds = thresholds;
+		this.impacts = impacts;
 		
 		sumResponse = 0;
 		sqSumResponse = 0;
@@ -124,14 +130,29 @@ public class FeatureHistogram {
 	{
 		for(int f=start;f<=end;f++)
 			Arrays.fill(sum[f], 0);
+
+
+		// for each psuedo-response
 		for(int k=0;k<labels.length;k++)
 		{
+			// for each feature
 			for(int f=start;f<=end;f++)
 			{
+				// find the best threshold for a given psuedo-response
 				int t = sampleToThresholdMap[f][k];
+
+				// build a histogram at feature f, threshold t for
+				// add the psuedo response that fits in here
+				//
+				// later, this can let us pick the best split
+				// by finding the point t in the histogram with
+				// divides the psuedo-response space
 				sum[f][t] += labels[k];
 				if(f == 0)
 				{
+					// assumulate each psuedo response
+					// effectively: for each psuedo response k,
+					// 		accumulate sumResponse, sqSumResponse
 					sumResponse += labels[k];
 					sqSumResponse += labels[k]*labels[k];
 				}
@@ -149,6 +170,7 @@ public class FeatureHistogram {
 	{
 		this.features = parent.features;
 		this.thresholds = parent.thresholds;
+		this.impacts = parent.impacts;
 		sumResponse = 0;
 		sqSumResponse = 0;
 		sum = new double[features.length][];
@@ -205,6 +227,7 @@ public class FeatureHistogram {
 		this.reuseParent = reuseParent;
 		this.features = parent.features;
 		this.thresholds = parent.thresholds;
+		this.impacts = parent.impacts;
 		sumResponse = parent.sumResponse - leftSibling.sumResponse;
 		sqSumResponse = parent.sqSumResponse - leftSibling.sqSumResponse;
 		
@@ -262,13 +285,22 @@ public class FeatureHistogram {
 				
 				double sumLeft = sum[i][t];
 				double sumRight = sumResponse - sumLeft;
-				
+
+				// See: http://www.dcc.fc.up.pt/~ltorgo/PhD/th3.pdf  pp69
+				//
+				// This S approximates the error. S is relative to this decision
+				//
+				// Error is really (sqSumResponse / count) - S / count
+				// we add back in the error calculation
+
 				double S = sumLeft * sumLeft / countLeft + sumRight * sumRight / countRight;
+				double errST = (sqSumResponse / totalCount) * (S / totalCount);
 				if(cfg.S < S)
 				{
 					cfg.S = S;
 					cfg.featureIdx = i;
 					cfg.thresholdIdx = t;
+					cfg.errReduced = errST;
 				}
 			}
 		}		
@@ -319,20 +351,21 @@ public class FeatureHistogram {
 					best = wk.cfg;
 			}		
 		}
-		
+
 		if(best.S == -1)//unsplitable, for some reason...
 			return false;
 		
 		//if(minS >= sp.getDeviance())
 			//return null;
-		
-		double[] sumLabel = sum[best.featureIdx];
+
+		// bestFeaturesHist is the best features
+		double[] bestFeaturesHist = sum[best.featureIdx];
 		int[] sampleCount = count[best.featureIdx];
 		
-		double s = sumLabel[sumLabel.length-1];
-		int c = sampleCount[sumLabel.length-1];
+		double s = bestFeaturesHist[bestFeaturesHist.length-1];
+		int c = sampleCount[bestFeaturesHist.length-1];
 		
-		double sumLeft = sumLabel[best.thresholdIdx];
+		double sumLeft = bestFeaturesHist[best.thresholdIdx];
 		int countLeft = sampleCount[best.thresholdIdx];
 		
 		double sumRight = s - sumLeft;
@@ -352,6 +385,10 @@ public class FeatureHistogram {
 			else//go to the right
 				right[r++] = k;
 		}
+
+		// update impact with info on best
+		//System.out.format("Feature %d reduced error %f\n", features[best.featureIdx], best.errReduced);
+		impacts[best.featureIdx] += best.errReduced;
 		
 		FeatureHistogram lh = new FeatureHistogram();
 		lh.construct(sp.hist, left, labels);
