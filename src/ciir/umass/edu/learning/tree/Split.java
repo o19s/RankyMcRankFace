@@ -28,7 +28,7 @@ public class Split {
 	//Intermediate variables (ONLY used during learning)
 	//*DO NOT* attempt to access them once the training is done
 	private boolean isRoot = false;
-	private double sumLabel = 0.0;
+	private double sumLabel = 0.0;		// label really means the psueodo-response state for lambdamart
 	private double sqSumLabel = 0.0;
 	private Split left = null;
 	private Split right = null;
@@ -159,6 +159,16 @@ public class Split {
 			strOutput += right.getString(indent + "\t");
 			strOutput += indent + "</split>" + "\n";
 		}
+		strOutput += indent + "<psuedoResponse>";
+
+		strOutput += indent + "  <sum>";
+		strOutput += indent + "  " + sumLabel;
+		strOutput += indent + "  </sum>";
+
+		strOutput += indent + "  <sqSum>";
+		strOutput += indent + "  " + sumLabel;
+		strOutput += indent + "  </sqSum>";
+		strOutput += indent + "</psuedoResponse>";
 		return strOutput;
 	}
 
