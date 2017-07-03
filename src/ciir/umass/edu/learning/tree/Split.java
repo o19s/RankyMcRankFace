@@ -159,16 +159,6 @@ public class Split {
 			strOutput += right.getString(indent + "\t");
 			strOutput += indent + "</split>" + "\n";
 		}
-		strOutput += indent + "<psuedoResponse>";
-
-		strOutput += indent + "  <sum>";
-		strOutput += indent + "  " + sumLabel;
-		strOutput += indent + "  </sum>";
-
-		strOutput += indent + "  <sqSum>";
-		strOutput += indent + "  " + sumLabel;
-		strOutput += indent + "  </sqSum>";
-		strOutput += indent + "</psuedoResponse>";
 		return strOutput;
 	}
 
