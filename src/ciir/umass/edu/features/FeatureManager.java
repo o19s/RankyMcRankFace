@@ -33,6 +33,7 @@ public class FeatureManager {
 		boolean shuffle = false;
 		int nFold = 0;
 		float tvs = -1;//train-validation split in each fold
+		float tts = -1;//train-test validation split of the whole dataset
 		
 		if(args.length < 3)
 		{
@@ -50,7 +51,11 @@ public class FeatureManager {
 			System.out.println("  [+] k-fold Partitioning (sequential split)");
 			System.out.println("\t-k <fold>\t\tThe number of folds");
 			System.out.println("\t[ -tvs <x \\in [0..1]> ] Train-validation split ratio (x)(1.0-x)");
-			
+
+			//System.out.println("");
+			System.out.println("  [+] Train-test split");
+			System.out.println("\t-tts <x \\in [0..1]> ] Train-test split ratio (x)(1.0-x)");
+
 			System.out.println("");
 			System.out.println("  NOTE: If both -shuffle and -k are specified, the input data will be shuffled and then sequentially partitioned.");
 			System.out.println("");
@@ -67,11 +72,18 @@ public class FeatureManager {
 				shuffle = true;
 			else if (args[i].equalsIgnoreCase ("-tvs"))
 				tvs = Float.parseFloat(args[++i]);
+			else if (args[i].equalsIgnoreCase ("-tts"))
+				tts = Float.parseFloat(args[++i]);
 			else if (args[i].equalsIgnoreCase ("-output"))
 				outputDir = FileUtils.makePathStandard(args[++i]);
-		}		
-	
-		if(shuffle || nFold > 0)
+		}
+
+		if (nFold > 0 && tts != -1) {
+			System.out.println("Error: Only one of k or tts should be specified.");
+			return;
+		}
+
+		if(shuffle || nFold > 0 || tts != -1)
 		{
 			List<RankList> samples = readInput(rankingFiles);
 
@@ -80,7 +92,7 @@ public class FeatureManager {
 				System.out.println("Error: The input file is empty.");
 				return;
 			}
-			
+
 			String fn = FileUtils.getFileName(rankingFiles.get(0));
 
 			if(shuffle)
@@ -92,6 +104,29 @@ public class FeatureManager {
 				System.out.print("Saving... ");
 				FeatureManager.save(samples, outputDir + fn);
 				System.out.println("[Done]");
+			}
+
+			if (tts != -1)
+			{
+				List<RankList> trains = new ArrayList<>();
+				List<RankList> tests = new ArrayList<>();
+
+				System.out.println("Splitting... ");
+				prepareSplit(samples, tts, trains, tests);
+				System.out.println("[Done]");
+
+				try
+				{
+					System.out.print("Saving splits...");
+					save(trains, outputDir + "train." + fn);
+					save(tests, outputDir + "test." + fn);
+					System.out.println("[Done]");
+				}
+				catch(Exception ex)
+				{
+					throw RankLibError.create("Cannot save partition data.\n" +
+							"Occured in FeatureManager::main(): ", ex);
+				}
 			}
 
 			if(nFold > 0)
