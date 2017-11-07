@@ -145,7 +145,6 @@ public class FeatureManager {
 	public static List<RankList> readInput(String inputFile, boolean mustHaveRelDoc, boolean useSparseRepresentation)	
 	{
 		List<RankList> samples = new ArrayList<>();
-		int countRL = 0;
 		int countEntries = 0;
 
 		try {
@@ -166,7 +165,7 @@ public class FeatureManager {
 					continue;
 				
 				if(countEntries % 10000 == 0)
-					System.out.print("\rReading feature file [" + inputFile + "]: " + countRL + "... ");
+					System.out.print("\rReading feature file [" + inputFile + "]: " + samples.size() + " ranked lists... ");
 				
 				DataPoint qp = null;
 
