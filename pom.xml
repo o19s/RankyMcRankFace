@@ -8,6 +8,30 @@
 
   <packaging>jar</packaging>
   <name>RankyMcRankFace</name>
+  <description>Hardened Fork of Ranklib learning to rank library</description>
+  <url>https://github.com/o19s/RankyMcRankFace</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>osc</id>
+      <name>Oscar</name>
+      <email>oscar@o19s.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/o19s/RankyMcRankFace.git</connection>
+    <developerConnection>scm:git:https://github.com/o19s/RankyMcRankFace.git</developerConnection>
+    <url>https://github.com/o19s/RankyMcRankFace</url>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <mainClass>ciir.umass.edu.eval.Evaluator</mainClass>
@@ -25,15 +49,10 @@
 
   <distributionManagement>
     <repository>
-      <id>deployment</id>
-      <name>Internal Releases</name>
-      <url>http://scm-ciir.cs.umass.edu:8080/nexus/content/repositories/releases/</url>
+      <id>sonatype</id>
+      <name>Sonatype</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
-    <snapshotRepository>
-      <id>deployment</id>
-      <name>Internal Releases</name>
-      <url>http://scm-ciir.cs.umass.edu:8080/nexus/content/repositories/snapshots/</url>
-    </snapshotRepository>
   </distributionManagement>
 
   <build>
@@ -68,6 +87,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.3</version>
         <configuration>
+          <source>8</source>
           <additionalparam>-Xdoclint:none</additionalparam>
         </configuration>
       </plugin>
@@ -96,6 +116,20 @@
 					</execution>
 				</executions>
 			</plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
     </plugins>
   </build>
