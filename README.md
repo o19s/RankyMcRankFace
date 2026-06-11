@@ -1,7 +1,6 @@
 [![CI](https://github.com/o19s/RankyMcRankFace/actions/workflows/ci.yml/badge.svg)](https://github.com/o19s/RankyMcRankFace/actions/workflows/ci.yml) [ ![Download](https://api.bintray.com/packages/o19s/RankyMcRankFace/RankyMcRankFace/images/download.svg) ](https://bintray.com/o19s/RankyMcRankFace/RankyMcRankFace/_latestVersion)
 
 This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork of Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank) and the [OpenSearch Learning to Rank Plugin](https://github.com/opensearch-project/opensearch-learning-to-rank-base).
-
 It is under the `com.o19s:RankyMcRankFace` Maven namespace.
 
 ## Ranklib
