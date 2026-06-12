@@ -1,7 +1,6 @@
-[![CircleCI](https://circleci.com/gh/o19s/RankyMcRankFace.svg?style=svg)](https://circleci.com/gh/o19s/RankyMcRankFace) [ ![Download](https://api.bintray.com/packages/o19s/RankyMcRankFace/RankyMcRankFace/images/download.svg) ](https://bintray.com/o19s/RankyMcRankFace/RankyMcRankFace/_latestVersion)
+[![CI](https://github.com/o19s/RankyMcRankFace/actions/workflows/ci.yml/badge.svg)](https://github.com/o19s/RankyMcRankFace/actions/workflows/ci.yml) [ ![Download](https://api.bintray.com/packages/o19s/RankyMcRankFace/RankyMcRankFace/images/download.svg) ](https://bintray.com/o19s/RankyMcRankFace/RankyMcRankFace/_latestVersion)
 
-This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork of Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank).
-
+This project is [OpenSource Connections](http://opensourceconnections.com) API-compatible fork of Ranklib, deployed on Maven, with various improvements making it easier to integrate with the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank) and the [OpenSearch Learning to Rank Plugin](https://github.com/opensearch-project/opensearch-learning-to-rank-base).
 It is under the `com.o19s:RankyMcRankFace` Maven namespace.
 
 ## Ranklib
@@ -11,6 +10,4 @@ Ranklib is an open source learning to rank project hosted on [sourceforge](sourc
 ## Improvements over Ranklib
 
 - Performance improvement reading in models, needed for the [Elasticsearch Learning to Rank Plugin](http://github.com/o19s/elasticsearch-learning-to-rank)
-- During training: outputs impact (total error reduced) of each feature
-
-bump.
+- During training: outputs impact (total error reduced) of each feature bump.
