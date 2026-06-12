@@ -15,8 +15,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +50,11 @@ public class Ensemble {
 			trees = new ArrayList<RegressionTree>();
 			weights = new ArrayList<Float>();
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			trySetDocBuilderFeature(dbFactory, "http://apache.org/xml/features/disallow-doctype-decl", true);
+			trySetDocBuilderFeature(dbFactory, "http://xml.org/sax/features/external-general-entities", false);
+			trySetDocBuilderFeature(dbFactory, "http://xml.org/sax/features/external-parameter-entities", false);
+			trySetDocBuilderFeature(dbFactory, "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			trySetDocBuilderFeature(dbFactory, XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			byte[] xmlDATA = xmlRep.getBytes();
 			ByteArrayInputStream in = new ByteArrayInputStream(xmlDATA);
@@ -134,6 +141,14 @@ public class Ensemble {
 		return features;
 	}
 	
+	private static void trySetDocBuilderFeature(DocumentBuilderFactory factory, String feature, boolean value) {
+		try {
+			factory.setFeature(feature, value);
+		} catch (ParserConfigurationException e) {
+			// parser doesn't support this feature; other protections still apply
+		}
+	}
+
 	/**
 	 * Each input node @n corersponds to a <split> tag in the model file.
 	 * @param n
