@@ -1,12 +1,12 @@
 name: Tag and publish a release
 
 # Mirrors the elasticsearch-learning-to-rank release flow, adapted for this Maven project.
-# Push a tag like v0.3.0 (matching <version> in pom.xml) to cut a release.
+# Push a tag matching <version> in pom.xml to cut a release, e.g. 0.3.0.
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   release:
