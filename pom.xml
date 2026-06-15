@@ -4,7 +4,7 @@
 
   <groupId>com.o19s</groupId>
   <artifactId>RankyMcRankFace</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 
   <packaging>jar</packaging>
   <name>RankyMcRankFace</name>
@@ -47,11 +47,17 @@
     </dependency>
   </dependencies>
 
+  <!--
+    Legacy OSSRH (oss.sonatype.org) was shut down on 2025-06-30. Publishing now goes
+    through the Sonatype Central Portal. We use its OSSRH-compatibility staging API so the
+    existing Maven deploy flow keeps working; the release workflow then triggers the upload
+    of the staged com.o19s repository to Maven Central.
+  -->
   <distributionManagement>
     <repository>
       <id>sonatype</id>
-      <name>Sonatype</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+      <name>Central Portal (OSSRH Staging API)</name>
+      <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
@@ -120,6 +126,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.7</version>
         <executions>
           <execution>
             <id>sign-artifacts</id>
@@ -127,6 +134,13 @@
             <goals>
               <goal>sign</goal>
             </goals>
+            <configuration>
+              <!-- Non-interactive signing in CI; passphrase comes from MAVEN_GPG_PASSPHRASE. -->
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
           </execution>
         </executions>
       </plugin>
