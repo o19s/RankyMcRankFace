@@ -40,6 +40,7 @@ public class RankNet extends Ranker {
 	protected List<Layer> layers = new ArrayList<Layer>();
 	protected Layer inputLayer = null;
 	protected Layer outputLayer = null;
+	private int nNeurons = 0;//total number of neurons, i.e. the size of eval()'s activation array
 	
 	//to store the best model on validation data (if specified)
 	protected List<List<Double>> bestModelOnValidation = new ArrayList<List<Double>>();
@@ -100,6 +101,8 @@ public class RankNet extends Ranker {
 			for(int j=0;j<layers.get(i).size();j++)
 				connect(0, inputLayer.size()-1, i, j);
 		
+		assignSlots();
+
 		//initialize weights
 		/*Random random = new Random();
 		for(int i=1;i<layers.size();i++)
@@ -113,6 +116,18 @@ public class RankNet extends Ranker {
 					n.getInLinks().get(k).setWeight(b*random.nextDouble()*(random.nextInt(2)==0?1:-1));
 			}
 		}*/
+	}
+	/**
+	 * Number the neurons in layer order. eval() keeps its activations in an array indexed by
+	 * these slots, so the network itself is never written to while scoring.
+	 */
+	private void assignSlots()
+	{
+		int slot = 0;
+		for(int i=0;i<layers.size();i++)
+			for(int j=0;j<layers.get(i).size();j++)
+				layers.get(i).get(j).slot = slot++;
+		nNeurons = slot;
 	}
 	protected void connect(int sourceLayer, int sourceNeuron, int targetLayer, int targetNeuron)
 	{
@@ -356,17 +371,36 @@ public class RankNet extends Ranker {
 		}
 		PRINTLN("---------------------------------");
 	}
+	/**
+	 * Score a data point. This only reads the network (weights and structure) and keeps every
+	 * intermediate activation in a local array, so a single ranker can be shared by any number
+	 * of threads.
+	 */
 	public double eval(DataPoint p)
 	{
+		double[] activation = new double[nNeurons];
 		//feed input
 		for(int k=0;k<inputLayer.size()-1;k++)//not the "bias" node
-			inputLayer.get(k).setOutput(p.getFeatureValue(features[k]));
+			activation[inputLayer.get(k).slot] = p.getFeatureValue(features[k]);
 		//and now the bias node with a fix "1.0"
-		inputLayer.get(inputLayer.size()-1).setOutput(1.0f);		
+		activation[inputLayer.get(inputLayer.size()-1).slot] = 1.0f;
 		//propagate
 		for(int k=1;k<layers.size();k++)//skip the input layer
-			layers.get(k).computeOutput();		
-		return outputLayer.get(0).getOutput();
+		{
+			Layer layer = layers.get(k);
+			for(int j=0;j<layer.size();j++)
+			{
+				Neuron n = layer.get(j);
+				double wsum = 0.0;
+				for(int i=0;i<n.inLinks.size();i++)
+				{
+					Synapse s = n.inLinks.get(i);
+					wsum += activation[s.getSource().slot] * s.getWeight();
+				}
+				activation[n.slot] = n.tfunc.compute(wsum);
+			}
+		}
+		return activation[outputLayer.get(0).slot];
 	}	
 	public Ranker createNew()
 	{
