@@ -25,6 +25,7 @@ public class Neuron {
 	protected TransferFunction tfunc = new LogiFunction();
 	
 	protected double output;//sigmoid(wsum) (range from 0.0 to 1.0): output for the current input
+	protected int slot = -1;//position of this neuron in the flat activation array used by RankNet.eval(); set once by RankNet.wire()
 	protected List<Double> outputs = null;
 	protected double delta_i = 0.0; 
 	protected double[] deltas_j = null; 
